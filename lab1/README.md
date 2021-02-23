@@ -18,10 +18,10 @@
 
 Примечание: для выполнения практически всех команд требуются root права
 
-Загрузка модуля в ядро и проверка загрузки
+Загрузка модуля в ядро, проверка загрузки:
 ```
 # insomd lab1.ko
-# lsmod 
+# lsmod | grep lab1
 ```
 Ввод текста в файл символьного устройства:
 ```
@@ -30,10 +30,13 @@
 Вывод результатов:
 ```
 # cat /proc/var4    # вывод в консоль пользователя
-# cat /dev/var4     # вывод в консоль пользователя
-# dmesg             # просмотр кольцевого буфера
+# cat /dev/var4     # вывод в консоль пользователя и в кольцевой буфер
 ```
-Выгрузка модуля
+Просмотр кольцевого буфера:
+```
+# dmesg
+```
+Выгрузка модуля:
 ```
 # rmmod lab1.ko
 ```
@@ -42,6 +45,11 @@
 
 ```
 # insomd lab1.ko          
+# lsmod | grep lab1
+lab1 <Size>  0
+# dmesg
+...
+[ 3519.582977] lab1: initialization completed
 # echo " test text " >/dev/var4     # 3 пробела
 # cat /proc/var4
 3
@@ -50,6 +58,22 @@
 3
 8
 # dmesg
-ДОДЕЛАТЬ ВЫВОД
+...
+[ 3791.282709] /dev/var4: open()
+[ 3791.282752] /dev/var4: write() [space_ctr = 3, written_count = 2, size = 2, max_size = 16]
+[ 3791.282758] /dev/var4: close()
+[ 3799.968808] /proc/var4: read()
+[ 3806.827775] /dev/var4: open()
+[ 3806.827794] /dev/var4: write() [space_ctr = 8, written_count = 2, size = 4, max_size = 16]
+[ 3806.827798] /dev/var4: close()
+[ 3815.617270] /dev/var4: open()
+[ 3815.617283] /dev/var4: read()
+[ 3815.617284] /dev/var4: results:
+               3
+               8
+[ 3815.617303] /dev/var4: close()
 # rmmod lab1.ko
+# dmesg
+...
+[ 3920.876607] lab1: resources freed 
 ```

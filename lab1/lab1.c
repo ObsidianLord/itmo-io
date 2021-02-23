@@ -78,6 +78,7 @@ static ssize_t dev_read(struct file *f, char __user *ubuf, size_t count, loff_t 
   *off = len;
 
   printk(KERN_INFO "/dev/var4: read()\n");
+  printk(KERN_DEBUG "/dev/var4: results:\n%s", ubuf);
   return len;
 }
 
