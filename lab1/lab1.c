@@ -107,8 +107,8 @@ static ssize_t dev_write(struct file *f, const char __user *buf, size_t len, lof
 
   if (size + size > max_size)
   {
-    history = krealloc(history, max_size, GFP_KERNEL);
     max_size += max_size;
+    history = krealloc(history, sizeof(char) * max_size, GFP_KERNEL);
   }
 
   printk(KERN_INFO "/dev/var4: write() [space_ctr = %d, written_count = %ld, size = %ld, max_size = %ld]\n", space_ctr, written_count, size, max_size);
