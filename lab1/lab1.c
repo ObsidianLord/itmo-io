@@ -29,6 +29,28 @@ static char* history;
 static size_t size;
 static size_t max_size;
 
+static ssize_t proc_write(struct file *file, const char __user * ubuf, size_t count, loff_t* ppos);
+static ssize_t proc_read(struct file *file, char __user * ubuf, size_t count, loff_t* ppos);
+static int dev_open(struct inode *i, struct file *f);
+static int dev_close(struct inode *i, struct file *f);
+static ssize_t dev_read(struct file *f, char __user *ubuf, size_t count, loff_t *off);
+static ssize_t dev_write(struct file *f, const char __user *buf, size_t len, loff_t *off);
+
+static struct file_operations mychdev_fops =
+{
+  .owner = THIS_MODULE,
+  .open = dev_open,
+  .release = dev_close,
+  .read = dev_read,
+  .write = dev_write
+};
+
+static struct file_operations fops = {
+  .owner = THIS_MODULE,
+  .read = proc_read,
+  .write = proc_write,
+};
+
 static ssize_t proc_write(struct file *file, const char __user * ubuf, size_t count, loff_t* ppos)
 {
   printk(KERN_DEBUG "/proc/var4: write()\n");
@@ -84,22 +106,34 @@ static ssize_t dev_read(struct file *f, char __user *ubuf, size_t count, loff_t 
 
 static ssize_t dev_write(struct file *f, const char __user *buf, size_t len, loff_t *off)
 {
-  char c;
   size_t written_count;
   size_t i;
+  char *command_name = "rename_proc";
+  char str[len];
+
+  if (copy_from_user(str, buf, len) != 0)
+  {
+    return -EFAULT;
+  }
+
+
+  if (strncmp(str, command_name, strlen(command_name)) == 0) {
+    char name[32];
+    sscanf(str, "rename_proc:%s", name);
+
+    proc_remove(entry);
+    if ((entry = proc_create(name, 0444, NULL, &fops)) == NULL) {
+      printk(KERN_ERR "/dev/var4: failed to create a proc entry: proc=%s\n", name);
+      return -1;
+    }
+    return len;
+  }
 
   for (i = 0; i < len; i++)
   {
-    if (copy_from_user(&c, buf + i, 1) != 0)
+    if (str[i] == ' ')
     {
-      return -EFAULT;
-    }
-    else
-    {
-      if (c == ' ')
-      {
-        space_ctr += 1;
-      }
+      space_ctr += 1;
     }
   }
 
@@ -115,22 +149,6 @@ static ssize_t dev_write(struct file *f, const char __user *buf, size_t len, lof
   printk(KERN_INFO "/dev/var4: write() [space_ctr = %d, written_count = %ld, size = %ld, max_size = %ld]\n", space_ctr, written_count, size, max_size);
   return len;
 }
-
-static struct file_operations mychdev_fops =
-{
-  .owner = THIS_MODULE,
-  .open = dev_open,
-  .release = dev_close,
-  .read = dev_read,
-  .write = dev_write
-};
-
-static struct file_operations fops = {
-  .owner = THIS_MODULE,
-  .read = proc_read,
-  .write = proc_write,
-};
-
 
 static int __init lab1_init(void)
 {
