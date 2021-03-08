@@ -1,9 +1,9 @@
 #include "lab2.h"
 
-MODULE_AUTHOR("Nikita Karmatskikh");
-MODULE_AUTHOR("Dmitriy Chistokhodov");
-MODULE_VERSION("1.0");
 MODULE_LICENSE("GPL");
+MODULE_AUTHOR("P3401: Margarita Fedotova, Gleb Lebedenko");
+MODULE_DESCRIPTION("IO Systems 2021 - lab 2, variant 4");
+MODULE_VERSION("1.0");
 
 static struct partition_entry partitions[] = {
   {
@@ -24,7 +24,7 @@ static struct partition_entry partitions[] = {
     end_head: 0x00,
     end_cyl_sec: 0x0000,
     abs_start_sec: 0x5000,
-    nr_sec: 0x117ff // 25 MB
+    nr_sec: 0xC800 // 25 MB
   },
   {
     bootable: 0x00,
@@ -34,7 +34,7 @@ static struct partition_entry partitions[] = {
     end_head: 0x00,
     end_cyl_sec: 0x0000,
     abs_start_sec: 0x11800,
-    nr_sec: 0x18fff // 15 MB
+    nr_sec: 0x7800 // 15 MB
   },
 };
 
