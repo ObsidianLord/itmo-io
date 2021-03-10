@@ -5,29 +5,16 @@
 **Цель работы:** Получить знания и навыки разработки драйверов блочных устройств для операционной системы Linux.
 
 ## Описание функциональности драйвера
-При загрузке модуля создается блочное устройство с одними первичным разделом размером 10Мбайт и одним расширенным разделом, содержащих два логических раздела размером 20Мбайт каждый.
+Разработанный драйвер при загрузке создает блочное устройство с тремя первичными разделами: /dev/lab2p1 резмером 10МБ, /dev/lab2p2 резмером 25МБ и /dev/lab2p3 резмером 15МБ. Общий объем созданного устройства - 50 МБ.
 
 ## Инструкция по сборке
-Для сборки драйвера выполнить:
-```bash
-make
-```
+Драйвер собирается как модуль ядра Linux. Для сборки требуется перейти в директорию `lab2/` и выполнить команду `make`
+
+Результат: в директории `lab2/` появился kernel object файл: `lab2.ko`
 
 ## Инструкция пользователя
-После успешной сборки загрузить полученный модуль:
-```bash
-insmod lab2.ko
-```
-Проверить, что драйвер загрузился без ошибок с помощью команды `dmesg`, в выводе должно быть подобное:
-```
-lab2: successfully loaded: disk=lab2, major=252
-lab2: disk open
-lab2: disk release
-```
-
-## Примеры использования
-После загрузки можно проверить, что драйвер создал блочное устройство согласно заданию
-c помощью `fdisk -l /dev/lab2`:
+После успешной сборки следует загрузить полученный kernel object файл, выполнив команду `insmod lab2.ko`.
+Проверку созданного блочного устройства и его разделов можно осуществить с помощью команды `fdisk -l /dev/lab2`:
 ```
 Disk /dev/lab2: 50 MiB, 52428800 bytes, 102400 sectors
 Units: sectors of 1 * 512 = 512 bytes
@@ -38,41 +25,33 @@ Disk identifier: 0x00000000
 
 Device      Boot Start    End Sectors Size Id Type
 /dev/lab2p1          1  20479   20479  10M 83 Linux
-/dev/lab2p2      20480 102399   81920  40M  5 Extended
-/dev/lab2p5      20481  61439   40959  20M 83 Linux
-/dev/lab2p6      61441 102399   40959  20M 83 Linux
-
+/dev/lab2p2      20480  71679   51200  25M 83 Linux
+/dev/lab2p3      71680 102399   30720  15M 83 Linux
 ```
-После можно отформатировать новые разделы и смонтировать их в директорию `/mnt`. Выполним команду `make setup` и убедимся что все сработало без ошибок выполнив `lsblk -l /dev/lab2`:
+## Примеры использования
+После успешной загрузки модуля можно осуществить форматирование разделов созданного устройства и смонтировать их в директорию `/mnt`. Для этих целей был написан скрипт, который можно запустить с помощью команды `make setup`. Проверить результат работы скрипта можно с помощью команды `lsblk -l /dev/lab2`.
 ```
 NAME   MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
-lab2   252:0    0  50M  0 disk 
+lab2   252:0    0  50M  0 disk
 lab2p1 252:1    0  10M  0 part /mnt/lab2p1
-lab2p2 252:2    0   1K  0 part 
-lab2p5 252:5    0  20M  0 part /mnt/lab2p5
-lab2p6 252:6    0  20M  0 part /mnt/lab2p6
+lab2p2 252:2    0  25M  0 part /mnt/lab2p2
+lab2p3 252:3    0  15M  0 part /mnt/lab2p3
 ```
-Далее можно провести бенчмарки, которые измеряют скорость передачи файла 9MB (размер файла можно регулировать переменной окружения `BENCH_FILE_SIZE`) между различными разделами созданного блочного устройства и реального SSD выполнив `make bench`:
+Для проведения бенчмарков, измеряющих скорость передачи файла с размером, указанным в переменной окружении `BENCH_FILE_SIZE`, между различными разделами созданного блочного устройства и реального SSD был разработан скрипт на языке Python. Для запуска скрипта следует воспользоваться командой `make bench`.
 ```
-src=/mnt/lab2p1, dst=/mnt/lab2p5, median speed=315.0, units=MB/s
-src=/mnt/lab2p1, dst=/mnt/lab2p6, median speed=316.0, units=MB/s
-src=/mnt/lab2p1, dst=/root, median speed=307.0, units=MB/s
-src=/mnt/lab2p5, dst=/mnt/lab2p1, median speed=316.0, units=MB/s
-src=/mnt/lab2p5, dst=/mnt/lab2p6, median speed=306.0, units=MB/s
-src=/mnt/lab2p5, dst=/root, median speed=301.0, units=MB/s
-src=/mnt/lab2p6, dst=/mnt/lab2p1, median speed=317.0, units=MB/s
-src=/mnt/lab2p6, dst=/mnt/lab2p5, median speed=295.0, units=MB/s
-src=/mnt/lab2p6, dst=/root, median speed=260.0, units=MB/s
-src=/root, dst=/mnt/lab2p1, median speed=315.0, units=MB/s
-src=/root, dst=/mnt/lab2p5, median speed=306.0, units=MB/s
-src=/root, dst=/mnt/lab2p6, median speed=321.0, units=MB/s
+src=/mnt/lab2p1, dst=/mnt/lab2p2, median speed=444.0, units=MB/s
+src=/mnt/lab2p1, dst=/mnt/lab2p3, median speed=418.0, units=MB/s
+src=/mnt/lab2p1, dst=/home/gleb, median speed=175.0, units=MB/s
+src=/mnt/lab2p2, dst=/mnt/lab2p1, median speed=420.0, units=MB/s
+src=/mnt/lab2p2, dst=/mnt/lab2p3, median speed=379.0, units=MB/s
+src=/mnt/lab2p2, dst=/home/gleb, median speed=180.0, units=MB/s
+src=/mnt/lab2p3, dst=/mnt/lab2p1, median speed=409.0, units=MB/s
+src=/mnt/lab2p3, dst=/mnt/lab2p2, median speed=448.0, units=MB/s
+src=/mnt/lab2p3, dst=/home/gleb, median speed=206.0, units=MB/s
+src=/home/gleb, dst=/mnt/lab2p1, median speed=424.0, units=MB/s
+src=/home/gleb, dst=/mnt/lab2p2, median speed=417.0, units=MB/s
+src=/home/gleb, dst=/mnt/lab2p3, median speed=308.0, units=MB/s
 ```
-Видно, что при чтении/записи файла в созданное блочное устройтво скорость записи в районе 300 MB/s.
-Однако при записи файла в директорию, которая смонтирована на реальный SSD можно в одном из
-случаем увидеть падение скорости до 260 MB/s, что подтверждает теорию о том, что SSD обладает меньшими скоростями на чтение/запись нежели RAM. Скорее всего этот факт был бы более явным, если проводить бенчмарки на файле большего размера.
+Скорость передачи данных в среднем составляет 400 MB/s, при этом явно просматривается снижение скорости до 180-200 MB/s при чтении файла из RAM в SSD, что подтверждает теорию о более низкой скорости операций чтения/записи SDD по сравнению с RAM.
 
-После звершения работы можно отмонтировать разделы и выгрузить модуль из ядра:
-```bash
-make umount
-rmmod lab2
-```
+После звершения работы с блочным устройством следует отмонтировать разделы устройства с помощью команды `make umount` и выгрузить модуль из ядра командой `rmmod lab2`.
