@@ -120,7 +120,7 @@ static int __init mod_init(void) {
     return -1;
   }
 
-  u8 minors = 3; // for each partition we need individual minor number
+  u8 minors = 4; // for each partition we need individual minor number
   disk.gd = alloc_disk(minors);
   if (!disk.gd) {
     printk(KERN_ERR "%s: failed to allocate disk\n", THIS_MODULE->name);
