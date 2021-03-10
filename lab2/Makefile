@@ -9,7 +9,7 @@ clean:
 	rm --force $(BENCH_FILE_NAME)
 
 
-PARTITIONS = lab2p1 lab2p5 lab2p6
+PARTITIONS = lab2p1 lab2p2 lab2p3
 
 define setup_partition
 	mkfs.vfat /dev/$(1)
