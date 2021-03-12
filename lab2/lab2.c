@@ -72,7 +72,7 @@ static struct partition_entry log_partitions[][4] = {
       end_head: 0x00,
       end_cyl_sec: 0x0000,
       abs_start_sec: 0x1,
-      nr_sec: 0xC800 // 25 MB
+      nr_sec: 0xC7FF // 25 MB
     },
     {
       bootable: 0x00,
@@ -81,8 +81,8 @@ static struct partition_entry log_partitions[][4] = {
       part_type: 0x05,
       end_head: 0x00,
       end_cyl_sec: 0x0000,
-      abs_start_sec: 0xC801,
-      nr_sec: 0x7800 // 15 MB
+      abs_start_sec: 0xC800,
+      nr_sec: 0x77FF // 15 MB
     },
   },
   {
@@ -94,7 +94,7 @@ static struct partition_entry log_partitions[][4] = {
       end_head: 0x00,
       end_cyl_sec: 0x0000,
       abs_start_sec: 0x1,
-      nr_sec: 0x7800 // 15 MB
+      nr_sec: 0x77FF // 15 MB
     },
   }
 };
