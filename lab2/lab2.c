@@ -6,6 +6,39 @@ MODULE_DESCRIPTION("IO Systems 2021 - lab 2, variant 4");
 MODULE_VERSION("1.0");
 
 static struct partition_entry partitions[] = {
+//   {
+//     bootable: 0x00,
+//     start_head: 0x00,
+//     start_cyl_sec: 0x0000,
+//     part_type: 0x83, // primary
+//     end_head: 0x00,
+//     end_cyl_sec: 0x0000,
+//     abs_start_sec: 0x1,
+//     nr_sec: 0x4fff // 10 MB
+//   },
+//   {
+//     bootable: 0x00,
+//     start_head: 0x00,
+//     start_cyl_sec: 0x0000,
+//     part_type: 0x83, // primary
+//     end_head: 0x00,
+//     end_cyl_sec: 0x0000,
+//     abs_start_sec: 0x5000,
+//     nr_sec: 0xC800 // 25 MB
+//   },
+//   {
+//     bootable: 0x00,
+//     start_head: 0x00,
+//     start_cyl_sec: 0x0000,
+//     part_type: 0x83, // primary
+//     end_head: 0x00,
+//     end_cyl_sec: 0x0000,
+//     abs_start_sec: 0x11800,
+//     nr_sec: 0x7800 // 15 MB
+//   },
+// };
+
+static struct partition_entry partitions[] = {
   {
     bootable: 0x00,
     start_head: 0x00,
@@ -20,22 +53,50 @@ static struct partition_entry partitions[] = {
     bootable: 0x00,
     start_head: 0x00,
     start_cyl_sec: 0x0000,
-    part_type: 0x83, // primary
+    part_type: 0x05, // extended
     end_head: 0x00,
     end_cyl_sec: 0x0000,
     abs_start_sec: 0x5000,
-    nr_sec: 0xC800 // 25 MB
+    nr_sec: 0x14000 // 40 MB
+  },
+};
+
+static sector_t log_partitions_addrs[] = {0x5000, 0xf000};
+static struct partition_entry log_partitions[][4] = {
+  {
+    {
+      bootable: 0x00,
+      start_head: 0x00,
+      start_cyl_sec: 0x0000,
+      part_type: 0x83,
+      end_head: 0x00,
+      end_cyl_sec: 0x0000,
+      abs_start_sec: 0x1,
+      nr_sec: 0xC800 // 25 MB
+    },
+    {
+      bootable: 0x00,
+      start_head: 0x00,
+      start_cyl_sec: 0x0000,
+      part_type: 0x05,
+      end_head: 0x00,
+      end_cyl_sec: 0x0000,
+      abs_start_sec: 0xC801,
+      nr_sec: 0x7800 // 15 MB
+    },
   },
   {
-    bootable: 0x00,
-    start_head: 0x00,
-    start_cyl_sec: 0x0000,
-    part_type: 0x83, // primary
-    end_head: 0x00,
-    end_cyl_sec: 0x0000,
-    abs_start_sec: 0x11800,
-    nr_sec: 0x7800 // 15 MB
-  },
+    {
+      bootable: 0x00,
+      start_head: 0x00,
+      start_cyl_sec: 0x0000,
+      part_type: 0x83,
+      end_head: 0x00,
+      end_cyl_sec: 0x0000,
+      abs_start_sec: 0x1,
+      nr_sec: 0x7800 // 15 MB
+    },
+  }
 };
 
 static int major;
@@ -82,6 +143,17 @@ static void write_mbr(u8 *buf) {
   memcpy(buf + BR_SIGNATURE_OFFSET, &br_signature, sizeof(br_signature));
 }
 
+static void write_ebr(u8 *buf) {
+  u16 br_signature = BR_SIGNATURE;
+  int i;
+  for (i = 0; i < ARRAY_SIZE(log_partitions); i++) {
+    u8 *addr = buf + log_partitions_addrs[i] * SECTOR_SIZE;
+    memset(addr, 0, BR_SIZE);
+    memcpy(addr + BR_PARTITION_TABLE_OFFSET, &log_partitions[i], sizeof(log_partitions[i]));
+    memcpy(addr + BR_SIGNATURE_OFFSET, &br_signature, sizeof(br_signature));
+  }
+}
+
 static int disk_open(struct block_device *bdev, fmode_t mode) {
     printk(KERN_INFO "%s: disk open\n", THIS_MODULE->name);
     return 0;
@@ -104,6 +176,7 @@ static int __init mod_init(void) {
     return -1;
   }
   write_mbr(disk.data);
+  write_ebr(disk.data);
 
   if ((major = register_blkdev(0, DISK_NAME)) < 0) {
     printk(KERN_ERR "%s: failed to get major number\n", THIS_MODULE->name);
