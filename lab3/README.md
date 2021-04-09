@@ -42,6 +42,7 @@
 10: vni0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UNKNOWN group default qlen 1000
     link/ether 08:00:27:95:eb:5d brd ff:ff:ff:ff:ff:ff
 ```
+Просмотр статистики по пакетам, которые пришли на сетевые интерфейсы: `ip -s link`
 
 Выгрузка модуля в ядро осуществляется командой `rmmod lab3.ko`
 
